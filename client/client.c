@@ -63,21 +63,34 @@ int main(int argc, char *argv[])
     char *buf = calloc(MAX_SEND, sizeof(char));
     buf[0x0] = 0x5A;
     buf[0x1] = 0x0;
+    char read_buf = 0x0;
     for (i = 0x0; i < file_length/(MAX_SEND - 2); i++) {
         memcpy((void*)(buf + 2), (void*)(buffer + i*(MAX_SEND - 2)), (MAX_SEND - 2));
         if ( ( i == (file_length/(MAX_SEND - 2)) ) && ( ( (file_length%(MAX_SEND - 2)) == 0 ) )) {
             buf[0x1] = 0xFF;
         }
-        n = write(sockfd, buf, MAX_SEND);
-        if (n < 0)
-            error("ERROR writing to socket");
+        do {
+            read_buf = 0x0;
+            n = write(sockfd, buf, MAX_SEND);
+            if (n < 0)
+                error("ERROR writing to socket");
+            n = read(sockfd, (void*)&read_buf, 1);
+            if (n < 0)
+                error("ERROR reading from socket");
+        } while (read_buf != 0x67);
     }
     if ( (file_length%(MAX_SEND - 2)) > 0 ) {
         memcpy((void*)(buf + 2), (void*)(buffer + i*(MAX_SEND - 2)), (file_length%(MAX_SEND - 2)));
         buf[0x1] = 0xFF;
-        n = write(sockfd, buf, 2 + (file_length%(MAX_SEND - 2)));
-        if (n < 0)
-            error("ERROR writing to socket");
+        do {
+            read_buf = 0x0;
+            n = write(sockfd, buf, 2 + (file_length%(MAX_SEND - 2)));
+            if (n < 0)
+                error("ERROR writing to socket");
+            n = read(sockfd, (void*)&read_buf, 1);
+            if (n < 0)
+                error("ERROR reading from socket");
+        } while (read_buf != 0x67);
     }
     close(sockfd);
     free(buffer);
