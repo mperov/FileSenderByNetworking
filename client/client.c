@@ -7,7 +7,6 @@
 #include <netinet/in.h>
 #include <netdb.h> 
 
-FILE *file;
 #define MAX_SEND 256
 
 void error(const char *msg)
@@ -16,22 +15,14 @@ void error(const char *msg)
     exit(0);
 }
 
-int main(int argc, char *argv[])
-{
-    int sockfd, portno, n;
+void sendFile(struct hostent *server, int portno) {
+    int sockfd, n;
     struct sockaddr_in serv_addr;
-    struct hostent *server;
-
+    FILE *file;
     char *buffer;
-    if (argc < 3) {
-       fprintf(stderr,"usage %s hostname port\n", argv[0]);
-       exit(0);
-    }
-    portno = atoi(argv[2]);
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) 
         error("ERROR opening socket");
-    server = gethostbyname(argv[1]);
     if (server == NULL) {
         fprintf(stderr, "ERROR, no such host\n");
         exit(0);
@@ -95,5 +86,14 @@ int main(int argc, char *argv[])
     close(sockfd);
     free(buffer);
     free(buf);
+}
+
+int main(int argc, char *argv[])
+{
+    if (argc < 3) {
+       fprintf(stderr,"usage %s hostname port\n", argv[0]);
+       exit(0);
+    }
+    sendFile(gethostbyname(argv[1]), atoi(argv[2]));
     return 0;
 }
