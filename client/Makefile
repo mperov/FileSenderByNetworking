@@ -5,3 +5,6 @@ clinet: client.o
 
 clinet.o: client.c
 	gcc -c client.c
+
+clean:
+	rm client
