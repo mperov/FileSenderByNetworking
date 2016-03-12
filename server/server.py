@@ -22,25 +22,30 @@ class TCPHandler(SocketServer.BaseRequestHandler):
             if ord(self.data[0]) == 0x5A:
                 command = self.getCommand()
                 data = self.getData()
+                global MEMORY
                 if command == 0:
                     MEMORY.append(data)
+                    self.request.sendall('\x67')
                 elif command == 255:
                     MEMORY.append(data)
                     print 'I have recieved file!'
                     global COUNTER
                     COUNTER += 1
                     self.mem_dump()
+                    self.request.sendall('\x67')
                 else:
                     print 'Error!'
             else:
                 print hex(ord(self.data[0]))
-                print 'Package is not true!'
-                break
+                print 'Package  is not true!'
+                self.request.sendall('\xEE')
 
     def mem_dump(self):
+        global MEMORY
         with open("image" + str(COUNTER) + ".jpg", 'w') as dump_file:
             for data in MEMORY:
                 dump_file.write(data)
+        MEMORY = []
 
     def getCommand(self):
         com = bin( ord( self.data[1] ) )
@@ -52,10 +57,15 @@ class TCPHandler(SocketServer.BaseRequestHandler):
 
 if __name__ == "__main__":
     try:
-        port = sys.argv[1]
+        ip = sys.argv[1]
     except:
-        print 'Первым аргументом должен быть порт, на котором будет работать сервер!'
+        print 'Первым аргументом должен быть IP адрес сервера'
         exit(1)
-    HOST, PORT = "localhost", int(port)
+    try:
+        port = sys.argv[2]
+    except:
+        print 'Вторым аргументом должен быть порт, на котором будет работать сервер!'
+        exit(1)
+    HOST, PORT = ip, int(port)
     server = SocketServer.TCPServer((HOST, PORT), TCPHandler)
     server.serve_forever()
