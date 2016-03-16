@@ -47,7 +47,6 @@ void sendFile(struct hostent *server, int portno) {
         fseek(file, 0, SEEK_SET);
         while(!feof(file) && i<file_length)
             buffer[i++] = fgetc(file);
-        buffer[i] = 0;
         fclose(file);
     }
     unsigned int i;
